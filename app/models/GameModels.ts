@@ -6,12 +6,12 @@ export interface GameDTO {
 	awayTeam: Team;
 }
 
-interface GameTime {
-	gameStatus?: GameStatus;
+export interface GameTime {
+	gameStatus: GameStatus;
 	gameStatusText: string;
 	period?: number;
 	gameClock?: string;
-	gameTimeUTC?: Date;
+	gameTimeUTC: Date;
 	gameDate: string;
 }
 
@@ -21,7 +21,7 @@ interface Team {
 	score?: number;
 }
 
-enum GameStatus {
+export enum GameStatus {
 	Before = 1,
 	During = 2,
 	Final = 3,
