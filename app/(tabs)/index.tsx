@@ -1,5 +1,5 @@
-import { FlatList, StyleSheet } from 'react-native';
-import { Text, View, useThemeColor } from '@/components/Themed';
+import { ActivityIndicator, FlatList, StyleSheet } from 'react-native';
+import { Text, View, useColors, } from '@/components/Themed';
 import Game from '@/components/Game';
 import moment, { Moment } from 'moment-timezone';
 import CalendarStrip from 'react-native-calendar-strip'
@@ -15,17 +15,17 @@ type GamesPerDate = Record<string, GameDTO[]>
 export default function TabOneScreen() {
   const [gamesPerDate, setGamesPerDate] = useState<GamesPerDate>({})
   const [selectedDate, setSelectedDate] = useState<Date>(new Date(moment.tz('America/New_York').format('YYYY-MM-DD')));
-  const primary = useThemeColor({}, 'primary');
-  const secondary = useThemeColor({}, 'secondary');
-  const text = useThemeColor({}, 'text');
-  const background = useThemeColor({}, 'background');
-  const accent = useThemeColor({}, 'accent');
+  const colors = useColors();
   const alarms = useAlarmStore(useShallow((state) => state.alarms));
-  console.log(new Date(moment.tz('America/New_York').format('YYYY-MM-DD')))
-    const fetchGames = async (startDate : string, endDate : string) => {
-      const response : AxiosResponse<GameDTO[]> = await axios.get(`http://192.168.16.55:3000/api/games?startDate=${startDate}&endDate=${endDate}`);
+    const fetchGames = async (startDate? : string, endDate? : string) => {
+    //  const response : AxiosResponse<GameDTO[]> = await axios.get(`http://192.168.16.55:3000/api/games?startDate=${startDate}&endDate=${endDate}`);
+    const response : AxiosResponse<GameDTO[]> = await axios.get(`http://192.168.16.55:3000/api/games`);
       setGamesPerDate(gamesByDate(response.data))
     }
+
+    useEffect(() => {
+      fetchGames()
+    }, [])
 
   const gamesByDate = (gamesList : GameDTO[]) => {
 		return gamesList.reduce((acc : GamesPerDate,game: GameDTO) => {
@@ -40,8 +40,8 @@ export default function TabOneScreen() {
 
   const gameStatusToColor : Record<GameStatus, string> = {
     1 : 'yellow',
-    "2" : 'green',
-    "3" : 'gray'
+    2 : 'green',
+    3 : 'gray'
   }
 
   const markedDatesFunc = (date : Moment) => {
@@ -59,29 +59,28 @@ export default function TabOneScreen() {
        style={{height:100, paddingTop: 10, marginBottom:10, width:'100%'}}
        calendarAnimation={{type: 'sequence', duration: 30}}
      //  daySelectionAnimation={{type: 'background', duration: 200, highlightColor : 'red'}}
-       calendarHeaderStyle={{color: text}}
-       calendarColor={primary}
+       calendarHeaderStyle={{color: colors.text}}
+       calendarColor={colors.primary}
        selectedDate={selectedDate}
-       dateNumberStyle={{color: text}}
-       dateNameStyle={{color: text}}
+       dateNumberStyle={{color: colors.text}}
+       dateNameStyle={{color: colors.text}}
        markedDates={markedDatesFunc}
       //  minDate={moment(selectedDate).days(-2)}
       //  maxDate={moment(selectedDate).days(2)}
-       onWeekChanged={async (firstDayInWeek) => {
-        await fetchGames(firstDayInWeek.format('YYYY-MM-DD'), firstDayInWeek.endOf('isoWeek').format('YYYY-MM-DD'))
+      // scrollable
+      scrollToOnSetSelectedDate
+      // onWeekChanged={(day) => {
+      //   fetchGames(day.format('YYYY-MM-DD'), day.add(10, 'days').format('YYYY-MM-DD'))
+      // }}
+       onDateSelected={(newDate) => {
+        setSelectedDate(newDate.toDate())
+        // fetchGames(newDate.subtract(3, 'days').format('YYYY-MM-DD'), newDate.add(6, 'days').format('YYYY-MM-DD'))
       }}
-       onDateSelected={(newDate) => setSelectedDate(newDate.toDate())}
        highlightDateNumberStyle={{}}
-       highlightDateNameStyle={{color: background}}
+       highlightDateNameStyle={{color: colors.background}}
        useNativeDriver
        iconContainer={{flex: 0.1}}
     />
-      {/* <CalendarProvider
-      date={'2024-04-16'}
-      onDateChanged={setSelectedDate} >
-    <WeekCalendar
-    firstDay={6}
-      /> */}
        <FlatList
        style={{width:'90%'}}
        contentContainerStyle={{ gap: 20}}

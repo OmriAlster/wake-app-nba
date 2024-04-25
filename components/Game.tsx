@@ -2,7 +2,7 @@ import { GameDTO, GameStatus, GameTime } from '@/app/models/GameModels';
 import { Link, router, useNavigation } from 'expo-router';
 import React, { useMemo } from 'react';
 import { StyleSheet, Image, Pressable, TouchableOpacity } from 'react-native';
-import { View, useThemeColor, Text } from './Themed';
+import { View, Text, useColors } from './Themed';
 import moment from 'moment';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { useAlarmStore } from '@/app/store/alarmStore';
@@ -10,18 +10,15 @@ import { useShallow } from 'zustand/react/shallow';
 import LiveIcon from './LiveIcon';
 
 const Game = (props : GameDTO) => {
-  const primary = useThemeColor({}, 'primary')
-  const secondary = useThemeColor({}, 'secondary')
-  const accent = useThemeColor({}, 'accent')
-  const text = useThemeColor({}, 'text')
+  const colors = useColors();
   const alarms = useAlarmStore(useShallow(state => state.alarms));
   const currAlarm = useMemo(() => alarms.find(alarm => alarm.gameId === props.gameId),[alarms, props])
 
   return (
-    <View style={{...styles.card, backgroundColor : primary, opacity : props.gameTime.gameStatus === GameStatus.Final ? 0.75 : 1}}>
+    <View style={{...styles.card, backgroundColor : colors.primary, opacity : props.gameTime.gameStatus === GameStatus.Final ? 0.75 : 1}}>
       {props.gameTime.gameStatus !== GameStatus.Final && 
         (currAlarm ? 
-        <MaterialCommunityIcons name='alarm-check' size={28} color={accent} 
+        <MaterialCommunityIcons name='alarm-check' size={28} color={colors.accent} 
         style={{top :5, left : 5, position : 'absolute'}} onPress={() => router.push(`/addGame/${props.gameId}`)}
        />
       // <TouchableOpacity
@@ -30,7 +27,7 @@ const Game = (props : GameDTO) => {
       //   <Text style={{textAlign : 'center'}}>{`${currAlarm.time.period}° ${currAlarm.time.leftTimeInPeriod}${currAlarm.diff ? `\n` + currAlarm.diff : ''}`}</Text>
       // </TouchableOpacity>
         :
-        <MaterialIcons name='add-alarm' size={28} color={secondary} 
+        <MaterialIcons name='add-alarm' size={28} color={colors.secondary} 
         style={{top :5, left : 5, position : 'absolute'}}
         onPress={() => router.push(`/addGame/${props.gameId}`)}
        />)}

@@ -4,6 +4,7 @@ import {persist} from 'zustand/middleware'
 type AlarmStore = {
   alarms: AlarmSettingsProps[];
   addAlarm: (newAlarm: AlarmSettingsProps) => void;
+  deleteAlarm : (gameIdToDelete : number) => void;
 };
 
 export interface AlarmTimeProps {
@@ -32,9 +33,9 @@ export const useAlarmStore = create(persist<AlarmStore>(
             set({ alarms: [...alarms, newAlarm] });
           }
         },
-        deleteAlarm: (idToDelete : number) => {
+        deleteAlarm: (gameIdToDelete : number) => {
           const { alarms } = get();
-          const updatedAlarms = alarms.filter((alarm) => alarm.gameId !== idToDelete);
+          const updatedAlarms = alarms.filter((alarm) => alarm.gameId !== gameIdToDelete);
           set({ alarms: updatedAlarms });
         }
     }),

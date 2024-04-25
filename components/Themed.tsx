@@ -16,7 +16,17 @@ type ThemeProps = {
 export type TextProps = ThemeProps & DefaultText['props'];
 export type ViewProps = ThemeProps & DefaultView['props'];
 
-export function useThemeColor(
+export const useColors = () => {
+  const primary = useThemeColor({},'primary')
+  const accent = useThemeColor({},'accent')
+  const background = useThemeColor({},'background')
+  const secondary = useThemeColor({},'secondary')
+  const text = useThemeColor({},'text')
+
+  return {primary, accent, background, secondary, text }
+}
+
+function useThemeColor(
   props: { light?: string; dark?: string },
   colorName: keyof typeof Colors.light & keyof typeof Colors.dark
 ) {

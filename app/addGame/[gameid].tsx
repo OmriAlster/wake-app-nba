@@ -2,15 +2,16 @@ import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, Platform, StyleSheet, TextInput, Switch, Image, Pressable } from 'react-native';
 
 import EditScreenInfo from '@/components/EditScreenInfo';
-import { Text, View, useThemeColor } from '@/components/Themed';
+import { Text, View, useColors } from '@/components/Themed';
 import { router, useLocalSearchParams, useNavigation } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import axios, { AxiosResponse } from 'axios';
 import { GameDTO, GameStatus } from '../models/GameModels';
 import NumberInput from 'react-native-numeric-input';
-import InputSpinner from "react-native-input-spinner";
+import InputSpinner, { ReactNativeInputSpinnerProps } from "react-native-input-spinner";
 import { AlarmSettingsProps, useAlarmStore } from '../store/alarmStore';
 import moment from 'moment';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function ModalScreen() {
   const {gameId} = useLocalSearchParams<{gameId : string}>();
@@ -18,8 +19,10 @@ export default function ModalScreen() {
   const [alarmSettings, setAlarmSettings] = useState<AlarmSettingsProps>({time : {leftTimeInPeriod  :12, period : 1}, gameId : Number(gameId)})
   const [useDiff, setUseDiff] = useState<boolean>(false);
   const navigation = useNavigation()
-  const {alarms, addAlarm} = useAlarmStore();
+  const {alarms, addAlarm, deleteAlarm} = useAlarmStore();
   const currAlarm = useMemo(() => game && alarms.find(alarm => alarm.gameId === game.gameId),[alarms, game])
+  const colors = useColors();
+
 
   useEffect(() => {
     if(currAlarm) {
@@ -27,8 +30,6 @@ export default function ModalScreen() {
        setUseDiff(currAlarm.diff !== undefined)
     }
   },[currAlarm])
-
-  const textColor = useThemeColor({}, 'text');
 
   const fetchGameById = async () => {
     const response : AxiosResponse<GameDTO> = await axios.get(`http://192.168.16.55:3000/api/games/${gameId}`);
@@ -66,12 +67,13 @@ export default function ModalScreen() {
       </div>
       <div style={styles.inputBox}>
       <Text style={{width :80}}>Period</Text>
-      <InputSpinner textColor={textColor} color='#009688' style={styles.inputSpinner} min={1} max={4} editable value={alarmSettings.time.period} onChange={(newPeriod : number) => setAlarmSettings(curr => ({...curr,
+      <InputSpinner textColor={colors.text} color={colors.primary} style={styles.inputSpinner} min={1} max={4} value={alarmSettings.time.period} onChange={(newPeriod : number) => setAlarmSettings(curr => ({...curr,
          time : {...curr.time, period : newPeriod}}))} showBorder rounded={false}/> 
       </div>
       <div style={styles.inputBox}>
       <Text style={{width :80}}>Time Left In Peiod</Text>
-      <InputSpinner textColor={textColor} color='#009688' style={styles.inputSpinner} showBorder rounded={false} min={1} max={12} editable value={alarmSettings.time.leftTimeInPeriod} onChange={(newLeftTime : number) => setAlarmSettings(curr => ({...curr, time : {...curr.time, leftTimeInPeriod : newLeftTime}}))}/> 
+      <InputSpinner textColor={colors.text} color={colors.primary} style={styles.inputSpinner} showBorder rounded={false} min={1} max={12} value={alarmSettings.time.leftTimeInPeriod} onChange={(newLeftTime : number) => setAlarmSettings(curr => ({...curr, time : {...curr.time, leftTimeInPeriod : newLeftTime}}))}
+      /> 
       </div>
       <div style={styles.inputBox}>
       <Switch
@@ -83,18 +85,24 @@ export default function ModalScreen() {
       />
       <div style={{...styles.inputBox, opacity : useDiff ? 1 : 0.2, width : '100%'}}>
       <Text style={{width : 35}}>Diff</Text>
-      <InputSpinner color='#009688' textColor={textColor} style={styles.inputSpinner} showBorder rounded={false} disabled={!useDiff} value={alarmSettings.diff} onChange={(newDiff : number) => setAlarmSettings(curr => ({...curr, diff : newDiff}))}/> 
+      <InputSpinner color={colors.primary} textColor={colors.text} style={styles.inputSpinner} showBorder rounded={false} disabled={!useDiff} value={alarmSettings.diff} onChange={(newDiff : number) => setAlarmSettings(curr => ({...curr, diff : newDiff}))}
+      /> 
       </div>
       </div>
-      <Pressable style={styles.button} onPress={() => {
-        console.log(alarmSettings)
-        addAlarm({...alarmSettings, diff : useDiff ? alarmSettings.diff : undefined})
-        navigation.goBack();
-        }}>
-        <Text>Submit</Text>
-      </Pressable>
+      <div style={{ width : '80%', display :'flex' }}>
+        {currAlarm && <MaterialIcons name='delete' color='red' size={40} style={{alignSelf : 'center'}} onPress={() => {
+          deleteAlarm(Number(gameId));
+          navigation.goBack();
+          }}></MaterialIcons>}
+        <Pressable style={styles.button} onPress={() => {
+          addAlarm({...alarmSettings, diff : useDiff ? alarmSettings.diff : undefined})
+          navigation.goBack();
+          }}>
+          <Text>Submit</Text>
+        </Pressable>
+      </div>
     </View> :
-      <ActivityIndicator size="large" color="#0000ff" />
+      <ActivityIndicator size="large" color={colors.text} />
   );
 }
 
@@ -116,11 +124,11 @@ const styles = StyleSheet.create({
   },
   button : {
     backgroundColor : '#009688',
-    width : '80%',
     alignItems : 'center',
     height : 40,
     justifyContent : 'center',
-    borderRadius : 8
+    borderRadius : 8,
+    flex : 1
   },
   inputBox : {
     display : 'flex',
